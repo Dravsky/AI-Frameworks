@@ -4,5 +4,6 @@ WORKDIR /app
 COPY . .
 # RUN runs commands in the container 
 RUN pip install -r requirements.txt
+EXPOSE 8000
 # The CMD instruction provides the default command to run when the container starts.
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

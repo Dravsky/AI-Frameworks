@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Manager</title>
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+    <main class="page-shell">
+        <section class="hero">
+            <p class="eyebrow">Full Stack App</p>
+            <h1>Item Dashboard</h1>
+            <p class="lede">This Express and EJS frontend is now wired to the FastAPI backend and renders the current in-memory items.</p>
+        </section>
+
+        <% if (errorMessage) { %>
+            <section class="message error">
+                <strong>Backend error:</strong> <%= errorMessage %>
+            </section>
+        <% } %>
+
+        <section class="content-grid">
+            <section class="panel">
+                <h2>Create Item</h2>
+                <form action="/items" method="POST" class="stack-form">
+                    <label for="name">Name</label>
+                    <input id="name" name="name" type="text" required maxlength="100">
+
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="5" placeholder="Add a short description"></textarea>
+
+                    <button type="submit">Add Item</button>
+                </form>
+            </section>
+
+            <section class="panel">
+                <div class="panel-heading">
+                    <h2>Current Items</h2>
+                    <span><%= items.length %> total</span>
+                </div>
+
+                <% if (items.length === 0) { %>
+                    <p class="empty-state">No items are available yet.</p>
+                <% } %>
+
+                <div class="item-list">
+                    <% items.forEach(item => { %>
+                        <article class="item-card">
+                            <div class="item-card-header">
+                                <div>
+                                    <p class="item-id">Item #<%= item.id %></p>
+                                    <h3><%= item.name %></h3>
+                                </div>
+                                <div class="actions">
+                                    <a href="/items/edit/<%= item.id %>">Edit</a>
+                                    <a href="/items/delete/<%= item.id %>" class="danger">Delete</a>
+                                </div>
+                            </div>
+                            <p><%= item.description || "No description provided." %></p>
+                        </article>
+                    <% }) %>
+                </div>
+            </section>
+        </section>
+    </main>
+</body>
+</html>

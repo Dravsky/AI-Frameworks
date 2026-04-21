@@ -1,85 +1,83 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from data.dal import ItemDAL
+
+item_dal = ItemDAL()
 
 app = FastAPI()
 
-# Your Pydantic model(s) here
-class Item(BaseModel):
+# This isn't actually needed for my implementation using Express, but I added it since it's in the assignment.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Pydantic models here
+class ItemCreate(BaseModel):
     name: str
     description: str = None
 
-# In-memory storage
-items_db: dict[int, dict] = {}
-next_id: int = 1
+class ItemUpdate(BaseModel):
+    name: str
+    description: str = None
 
-items_db[next_id] = {"name": "First Sample Item", "description": "This is the first sample item."}
-next_id += 1
-items_db[next_id] = {"name": "Second Sample Item", "description": "This is the second sample item."}
-next_id += 1
-items_db[next_id] = {"name": "Third Sample Item", "description": "This is the third sample item."}
-next_id += 1
+class ItemRead(BaseModel):
+    id: str
+    name: str
+    description: str = None
+
+class SingleItemResponse(BaseModel):
+    item: ItemRead
+
+class ItemReadAll(BaseModel):
+    items: list[ItemRead]
 
 # API Endpoints
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    return ItemReadAll(items=item_dal.get_all_items())
 
 @app.get("/items")
 def read_items():
-    return {"items": items_db}
+    return ItemReadAll(items=item_dal.get_all_items())
 
 @app.get("/items/{item_id}")
-def read_item(item_id: int):
-    item = items_db.get(item_id)
+def read_item(item_id: str):
+    item = item_dal.get_item(item_id)
 
     if item is None:
         raise HTTPException(status_code=404, detail="404 - Item not found")
     
-    return {"item": item}
+    return SingleItemResponse(item=item)
 
 # This outputs 200 by default; changed so it outputs the right status code.
 @app.post("/items", status_code=201)
-def create_item(created_item: Item):
-    global next_id
-    items_db[next_id] = created_item.model_dump()
-    next_id = next_id + 1
+def create_item(created_item: ItemCreate):
+    new_item = item_dal.create_item(created_item.model_dump())
 
-    return {"new_item": items_db[next_id-1]}
+    return SingleItemResponse(item=new_item)
 
 @app.put("/items/{item_id}")
-def update_item(item_id: int, update_item: Item):
-    item = items_db.get(item_id)
+def update_item(item_id: str, update_item: ItemUpdate):
+    item = item_dal.update_item(item_id, update_item.model_dump())
 
     if item is None:
         raise HTTPException(status_code=404, detail="404 - Item not found")
-    
-    items_db[item_id] = update_item.model_dump()
 
-    return {"updated_item": items_db[item_id]}
+    return SingleItemResponse(item=item)
 
 @app.delete("/items/{item_id}")
-def delete_item(item_id: int):
-    global next_id
+def delete_item(item_id: str):
+    deleted_item = item_dal.delete_item(item_id)
 
-    item = items_db.get(item_id)
-
-    if item is None:
+    if deleted_item is None:
         raise HTTPException(status_code=404, detail="404 - Item not found")
-    
-    deleted_item = items_db.pop(item_id)
 
-    # This code should be deleted later; I just don't like when indexes become inaccurate.
-    # This issue will go away when we switch to a database.
-    next_id = 1
-    new_item_db = {}
-    for item in items_db.values():
-        new_item_db[next_id] = item
-        next_id = next_id + 1
-
-    items_db.clear()
-    items_db.update(new_item_db)
-
-    return {"deleted_item": deleted_item}
+    return SingleItemResponse(item=deleted_item)
 
 # docker build -t my-awesome-api .
 # docker run -p8000:8000 my-awesome-api

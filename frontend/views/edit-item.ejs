@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Item</title>
+    <link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+    <main class="page-shell narrow">
+        <section class="hero compact">
+            <p class="eyebrow">Edit Item</p>
+            <h1><%= item.name %></h1>
+            <p class="lede">Update the item, then save it back through the FastAPI backend.</p>
+        </section>
+
+        <% if (errorMessage) { %>
+            <section class="message error">
+                <strong>Update failed:</strong> <%= errorMessage %>
+            </section>
+        <% } %>
+
+        <section class="panel">
+            <form action="/items/edit/<%= item.id %>" method="POST" class="stack-form">
+                <label for="name">Name</label>
+                <input id="name" name="name" type="text" value="<%= item.name %>" required maxlength="100">
+
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="6"><%= item.description || "" %></textarea>
+
+                <div class="button-row">
+                    <button type="submit">Save Changes</button>
+                    <a href="/" class="secondary-link">Cancel</a>
+                </div>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

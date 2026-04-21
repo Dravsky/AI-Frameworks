@@ -1,0 +1,47 @@
+services:
+
+  frontend:
+    container_name: frontend
+    build: ./frontend
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3000
+      BACKEND_URL: http://api:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    networks:
+      - ai-dev-network
+    volumes:
+      - ./frontend:/app
+
+  api:
+    container_name: api
+    build: ./backend
+    environment:
+      MONGO_URL: mongodb://db:27017
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - ai-dev-network
+    volumes:
+      - ./backend:/app
+
+  db:
+    container_name: db
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    networks:
+      - ai-dev-network
+    volumes:
+      - db-data:/data/db
+
+networks:
+  ai-dev-network:
+
+volumes:
+  db-data:
