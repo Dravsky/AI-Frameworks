@@ -46,14 +46,23 @@ app.get("/", (req, res) => {
 app.get("/items", async (req, res) => {
     try {
         const data = await apiFetch("/items")
+        const { prediction, confidence, predictionError, sepal_length, sepal_width, petal_length, petal_width } = req.query
         res.render("home", {
             items: normalizeItems(data.items),
-            errorMessage: null
+            errorMessage: null,
+            prediction: prediction || null,
+            confidence: confidence || null,
+            predictionError: predictionError || null,
+            lastInputs: { sepal_length, sepal_width, petal_length, petal_width }
         })
     } catch (error) {
         res.status(500).render("home", {
             items: [],
-            errorMessage: error.message
+            errorMessage: error.message,
+            prediction: null,
+            confidence: null,
+            predictionError: null,
+            lastInputs: {}
         })
     }
 })
@@ -78,6 +87,27 @@ app.post("/items", async (req, res) => {
             items: normalizeItems(data.items),
             errorMessage: error.message
         })
+    }
+})
+
+app.post("/predict", async (req, res) => {
+    const { sepal_length, sepal_width, petal_length, petal_width } = req.body
+    const features = [
+        parseFloat(sepal_length),
+        parseFloat(sepal_width),
+        parseFloat(petal_length),
+        parseFloat(petal_width)
+    ]
+    const inputs = `&sepal_length=${sepal_length}&sepal_width=${sepal_width}&petal_length=${petal_length}&petal_width=${petal_width}`
+    try {
+        const data = await apiFetch("/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ features })
+        })
+        res.redirect(`/items?prediction=${encodeURIComponent(data.prediction)}&confidence=${data.confidence}${inputs}`)
+    } catch (error) {
+        res.redirect(`/items?predictionError=${encodeURIComponent(error.message)}${inputs}`)
     }
 })
 

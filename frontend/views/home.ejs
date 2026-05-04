@@ -11,7 +11,7 @@
         <section class="hero">
             <p class="eyebrow">Full Stack App</p>
             <h1>Item Dashboard</h1>
-            <p class="lede">This Express and EJS frontend is now wired to the FastAPI backend and renders the current in-memory items.</p>
+            <p class="lede">This Express and EJS frontend is wired to a FastAPI backend. Items are persisted in MongoDB, and a trained neural network can predict Iris flower species from measurements.</p>
         </section>
 
         <% if (errorMessage) { %>
@@ -19,6 +19,38 @@
                 <strong>Backend error:</strong> <%= errorMessage %>
             </section>
         <% } %>
+
+        <section class="panel">
+            <h2>Iris Species Predictor</h2>
+            <p>Enter four measurements (in centimeters) and the neural network will predict which of the three Iris species the flower belongs to: <em>Setosa</em>, <em>Versicolor</em>, or <em>Virginica</em>.</p>
+
+            <form action="/predict" method="POST" class="stack-form">
+                <label for="sepal_length">Sepal Length (cm)</label>
+                <input id="sepal_length" name="sepal_length" type="number" step="0.1" min="0" required value="<%= lastInputs.sepal_length || '' %>">
+
+                <label for="sepal_width">Sepal Width (cm)</label>
+                <input id="sepal_width" name="sepal_width" type="number" step="0.1" min="0" required value="<%= lastInputs.sepal_width || '' %>">
+
+                <label for="petal_length">Petal Length (cm)</label>
+                <input id="petal_length" name="petal_length" type="number" step="0.1" min="0" required value="<%= lastInputs.petal_length || '' %>">
+
+                <label for="petal_width">Petal Width (cm)</label>
+                <input id="petal_width" name="petal_width" type="number" step="0.1" min="0" required value="<%= lastInputs.petal_width || '' %>">
+
+                <button type="submit">Predict Species</button>
+            </form>
+
+            <% if (prediction) { %>
+                <div class="message">
+                    <strong>Prediction:</strong> <%= prediction %> &mdash; <strong>Confidence:</strong> <%= (confidence * 100).toFixed(1) %>%
+                </div>
+            <% } %>
+            <% if (predictionError) { %>
+                <div class="message error">
+                    <strong>Prediction error:</strong> <%= predictionError %>
+                </div>
+            <% } %>
+        </section>
 
         <section class="content-grid">
             <section class="panel">

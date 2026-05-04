@@ -22,8 +22,35 @@ This project is a full-stack item manager built with an Express/EJS frontend, a 
 - `POST /items` creates a new item
 - `PUT /items/{item_id}` updates an existing item
 - `DELETE /items/{item_id}` deletes an existing item
+- `POST /predict` classifies an Iris flower from four measurements using a trained neural network
 - Data persists between restarts through MongoDB and the named Docker volume
 - CORS middleware is enabled in the FastAPI backend
+
+## Predict Endpoint
+
+**`POST /predict`**
+
+Runs inference against a trained `SimpleClassifier` neural network (trained on the Iris dataset) loaded once at app startup.
+
+Request body:
+```json
+{
+  "features": [5.1, 3.5, 1.4, 0.2]
+}
+```
+
+The four values correspond to sepal length, sepal width, petal length, and petal width — all in centimeters. Exactly 4 values are required.
+
+Response:
+```json
+{
+  "prediction": "setosa",
+  "confidence": 0.9981
+}
+```
+
+- `prediction` — one of `"setosa"`, `"versicolor"`, or `"virginica"`
+- `confidence` — the softmax probability (0–1) for the predicted class, rounded to 4 decimal places
 
 ## Project Structure
 
@@ -34,7 +61,10 @@ AI-Frameworks/
 │  │  └─ dal.py
 │  ├─ Dockerfile
 │  ├─ main.py
-│  └─ requirements.txt
+│  ├─ model.py
+│  ├─ model.pth
+│  ├─ requirements.txt
+│  └─ training.py
 ├─ frontend/
 │  ├─ public/
 │  ├─ views/
