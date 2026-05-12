@@ -1,17 +1,13 @@
-import torch
-import torch.nn.functional as F
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from data.dal import ItemDAL
-from model import SimpleClassifier
+import requests
+import os
+
+MODEL_SERVICE_URL = os.getenv("MODEL_SERVICE_URL", "http://localhost:8001")
 
 item_dal = ItemDAL()
-
-CLASSES = ('setosa', 'versicolor', 'virginica')
-classifier = SimpleClassifier(input_size=4, hidden_size=16, num_classes=3)
-classifier.load_state_dict(torch.load('model.pth', weights_only=True))
-classifier.eval()
 
 app = FastAPI()
 
@@ -78,17 +74,8 @@ def create_item(created_item: ItemCreate):
 
 @app.post("/predict")
 def predict(req: PredictionRequest):
-    if len(req.features) != 4:
-        raise HTTPException(status_code=422, detail="Expected exactly 4 features")
-    tensor = torch.tensor([req.features], dtype=torch.float32)
-    with torch.no_grad():
-        output = classifier(tensor)
-        probabilities = F.softmax(output, dim=1)
-        confidence, predicted = torch.max(probabilities, 1)
-    return PredictionResponse(
-        prediction=CLASSES[predicted.item()],
-        confidence=round(confidence.item(), 4)
-    )
+    response = requests.post(f"{MODEL_SERVICE_URL}/predict", json=req.dict())
+    return PredictionResponse(**response.json())
 
 @app.put("/items/{item_id}")
 def update_item(item_id: str, update_item: ItemUpdate):

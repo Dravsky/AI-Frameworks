@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, TensorDataset
 import torch.optim as optim
 import numpy as np
-from model import SimpleClassifier
+from model_service.model.model import SimpleClassifier
 
 # Load the iris dataset
 iris = load_iris()
